@@ -115,6 +115,29 @@ Finally, back in the Firebase console under *Authentication → Settings →
 Authorized domains*, add your Vercel domain (e.g. `your-app.vercel.app`) so
 Google sign-in works there too.
 
+## 7. Add your own data
+
+A fresh deployment starts with a completely empty database — nothing is
+seeded for you. Once you've signed in and granted yourself editor access
+from the Admin page, add data in this order:
+
+1. **Bosses** (`/bosses`) — add each boss/difficulty combo you run (e.g.
+   "Black Mage / Extreme" and "Black Mage / Hard" are separate entries, since
+   loot differs by difficulty). Click the icon swatch next to the boss name
+   to paste/drag in an image, and do the same for each loot item you add to
+   its loot table.
+2. **Players** (`/players`) — add each real-life player, then add their
+   in-game characters (IGN + class) underneath.
+3. **Parties** (`/parties`) — pick a boss, name the party, and assign
+   characters from your player roster into it. Click the 🎁 icon on a party
+   afterward to record who's been awarded which loot item.
+
+Everything — boss portraits, loot icons, rosters, party compositions — is
+whatever you put in; there's no example/demo content bundled with the app.
+Here's what a fully set-up board looks like once you've filled it all in:
+
+![Example of a populated Parties page](docs/example-parties.png)
+
 ## Data model
 
 - **bosses** — one document per boss *and* difficulty (e.g. "Black Mage /

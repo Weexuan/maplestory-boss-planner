@@ -2,8 +2,8 @@
 
 A MapleStory boss-run planner: manage boss configs (name, difficulty, loot
 table with icons), player profiles (with multiple characters each), and build
-boss parties from those characters. Track which loot each party member has
-been awarded, and link each signed-in Google account to a player profile with
+boss parties from those characters. Track which loot each party member can
+be awarded, and link each signed-in Google account to a player profile with
 admin-controlled edit permissions.
 
 Stack: React + TypeScript + Vite, Tailwind CSS, Firebase (Auth + Firestore),

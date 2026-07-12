@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Single hardcoded admin — rules can't read your .env, so unlike everywhere else in this
+    // app this email can't come from VITE_ADMIN_EMAIL. Replace the line below with your own
+    // admin email before running `firebase deploy --only firestore:rules` (see README).
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'YOUR_ADMIN_EMAIL@example.com';
+    }
+
+    // get() inside rules is privileged (not subject to these rules itself), so this is
+    // safe even though normal clients can't read other users' profile fields directly.
+    function myProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function myRole() {
+      return isSignedIn() ? myProfile().role : null;
+    }
+
+    function isEditor() {
+      return isAdmin() || myRole() == 'editor';
+    }
+
+    // App data: public read, editor/admin write.
+    match /bosses/{id} {
+      allow read: if true;
+      allow write: if isEditor();
+    }
+    match /players/{id} {
+      allow read: if true;
+      allow write: if isEditor();
+    }
+    match /parties/{id} {
+      allow read: if true;
+      allow write: if isEditor();
+    }
+
+    // User profiles + roles + character links: readable by the admin or by the user themself
+    // (privacy — this is the only collection with emails/photos, so it's not public like the
+    // rest). A user may create their own profile but only as "viewer" with no character linked
+    // yet; they may self-assign their character exactly once (playerId null -> a value), but
+    // only the admin can change role or reassign an already-set character afterward.
+    match /users/{userId} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+      allow create: if isSignedIn() && request.auth.uid == userId
+                     && request.resource.data.role == 'viewer'
+                     && request.resource.data.playerId == null;
+      allow update: if isAdmin()
+                     || (isSignedIn() && request.auth.uid == userId
+                         && request.resource.data.role == resource.data.role
+                         && (resource.data.playerId == null
+                             ? true
+                             : request.resource.data.playerId == resource.data.playerId));
+      allow delete: if isAdmin();
+    }
+  }
+}

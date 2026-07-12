@@ -1,6 +1,12 @@
 # Boss Planner
 This is a simple boss planner app I created to manage parties with my friends. Since we have multiple characters running multiple bosses, it is getting increasingly difficult to keep track.
 
+Everything, including, boss portraits, loot icons, rosters, party compositions — is
+whatever you put in; there's no example/demo content bundled with the app.
+Here's what a fully set-up board looks like once you've filled it all in:
+
+![Example of a populated Parties page](docs/example-parties.png)
+
 What the website can do: manage boss configs (name, difficulty, loot
 table with icons), player profiles (with multiple characters each), and build
 boss parties from those characters. Track which loot each party member can
@@ -133,11 +139,8 @@ from the Admin page, add data in this order:
    characters from your player roster into it. Click the 🎁 icon on a party
    afterward to record who's been awarded which loot item.
 
-Everything — boss portraits, loot icons, rosters, party compositions — is
+Once again, everything — boss portraits, loot icons, rosters, party compositions — is
 whatever you put in; there's no example/demo content bundled with the app.
-Here's what a fully set-up board looks like once you've filled it all in:
-
-![Example of a populated Parties page](docs/example-parties.png)
 
 ## Data model
 

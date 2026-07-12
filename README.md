@@ -1,6 +1,7 @@
 # Boss Planner
+This is a simple boss planner app I created to manage parties with my friends. Since we have multiple characters running multiple bosses, it is getting increasingly difficult to keep track.
 
-A MapleStory boss-run planner: manage boss configs (name, difficulty, loot
+What the website can do: manage boss configs (name, difficulty, loot
 table with icons), player profiles (with multiple characters each), and build
 boss parties from those characters. Track which loot each party member can
 be awarded, and link each signed-in Google account to a player profile with

@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { useBossesCollection, usePartiesCollection, usePlayersCollection } from "../hooks/useCollection";
+import {
+  useBossesCollection,
+  useClearsForWeek,
+  usePartiesCollection,
+  usePlayersCollection,
+} from "../hooks/useCollection";
 import { createParty, deleteParty, updateParty } from "../services/parties";
+import { setCleared } from "../services/clears";
 import { useAuthGate } from "../hooks/useAuthGate";
 import { useAuth } from "../contexts/AuthContext";
 import { Modal } from "../components/Modal";
@@ -9,7 +15,8 @@ import { PlayerFilter, partyHasPlayer } from "../components/PlayerFilter";
 import { LootAssignmentModal } from "../components/LootAssignmentModal";
 import { GiftIcon } from "../components/icons/GiftIcon";
 import { resolveParties, type ResolvedParty } from "../utils/resolveParty";
-import type { Boss, Party, PartyInput, PartyMember, Player } from "../types";
+import { getCurrentWeekId } from "../utils/week";
+import type { Boss, Party, PartyClear, PartyInput, PartyMember, Player } from "../types";
 
 interface MemberRow {
   rowId: string;
@@ -22,11 +29,13 @@ function rowsFromMembers(members: PartyMember[]): MemberRow[] {
 }
 
 export default function Parties() {
+  const currentWeekId = getCurrentWeekId();
   const { data: bosses, loading: bossesLoading } = useBossesCollection<Boss>();
   const { data: players, loading: playersLoading } = usePlayersCollection<Player>();
   const { data: parties, loading: partiesLoading } = usePartiesCollection<Party>();
+  const { data: clears } = useClearsForWeek<PartyClear>(currentWeekId);
   const { gate } = useAuthGate();
-  const { playerId: myPlayerId } = useAuth();
+  const { user, playerId: myPlayerId, signIn } = useAuth();
   const [editing, setEditing] = useState<ResolvedParty | null | "new">(null);
   const [deleting, setDeleting] = useState<ResolvedParty | null>(null);
   const [lootParty, setLootParty] = useState<ResolvedParty | null>(null);
@@ -43,6 +52,21 @@ export default function Parties() {
   }, [myPlayerId]);
 
   const loading = bossesLoading || playersLoading || partiesLoading;
+
+  const clearByPartyId = useMemo(() => {
+    const map = new Map<string, PartyClear>();
+    for (const c of clears) map.set(c.partyId, c);
+    return map;
+  }, [clears]);
+
+  const toggleCleared = async (partyId: string) => {
+    if (!user) {
+      void signIn();
+      return;
+    }
+    const current = clearByPartyId.get(partyId)?.cleared ?? false;
+    await setCleared(currentWeekId, partyId, !current);
+  };
 
   // Party docs snapshot boss/player/loot info at assignment time — re-resolve against the live
   // collections so renaming a boss, player, or loot item is reflected here without editing
@@ -127,6 +151,7 @@ export default function Parties() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {group.parties.map((party) => {
                 const full = party.members.length >= party.maxSize;
+                const cleared = clearByPartyId.get(party.id)?.cleared ?? false;
                 return (
                   <div
                     key={party.id}
@@ -134,7 +159,22 @@ export default function Parties() {
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="font-semibold text-white">{party.name}</h4>
+                        <div className="flex items-center gap-1.5">
+                          <h4 className="font-semibold text-white">{party.name}</h4>
+                          <button
+                            type="button"
+                            onClick={() => void toggleCleared(party.id)}
+                            title={cleared ? "Cleared this week — click to unmark" : "Mark cleared this week"}
+                            aria-label="Toggle cleared this week"
+                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] leading-none transition-colors ${
+                              cleared
+                                ? "border-emerald-400 bg-emerald-500/20 text-emerald-300"
+                                : "border-white/25 text-transparent hover:border-white/50"
+                            }`}
+                          >
+                            ✓
+                          </button>
+                        </div>
                         <p className={`text-xs ${full ? "text-emerald-400" : "text-gray-500"}`}>
                           {party.members.length} / {party.maxSize} members
                         </p>

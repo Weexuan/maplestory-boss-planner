@@ -79,3 +79,14 @@ export interface UserProfile {
   createdAt?: Timestamp;
   lastSignInAt?: Timestamp;
 }
+
+/** Whether a party's boss has been cleared for the current boss week. One doc per
+ *  (party, weekId) — a new week simply has no doc yet, i.e. uncleared, giving the weekly
+ *  reset for free without any cron job. */
+export interface PartyClear {
+  id: string; // `${weekId}_${partyId}`
+  weekId: string;
+  partyId: string;
+  cleared: boolean;
+  updatedAt?: Timestamp;
+}

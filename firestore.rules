@@ -41,6 +41,13 @@ service cloud.firestore {
       allow write: if isEditor();
     }
 
+    // Weekly "boss cleared" toggle: intentionally looser than everything else — any
+    // signed-in account can flip it, not just editors, since it's just a shared checklist.
+    match /clears/{id} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
     // User profiles + roles + character links: readable by the admin or by the user themself
     // (privacy — this is the only collection with emails/photos, so it's not public like the
     // rest). A user may create their own profile but only as "viewer" with no character linked

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, orderBy, query, type QueryConstraint } from "firebase/firestore";
+import { collection, onSnapshot, orderBy, query, where, type QueryConstraint } from "firebase/firestore";
 import { db } from "../firebase";
 
 interface UseCollectionResult<T> {
@@ -18,6 +18,10 @@ export function usePlayersCollection<T>(): UseCollectionResult<T> {
 
 export function usePartiesCollection<T>(): UseCollectionResult<T> {
   return useLiveCollection<T>("parties", [orderBy("name")]);
+}
+
+export function useClearsForWeek<T>(weekId: string): UseCollectionResult<T> {
+  return useLiveCollection<T>("clears", [where("weekId", "==", weekId)], [weekId]);
 }
 
 function useLiveCollection<T>(

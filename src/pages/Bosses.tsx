@@ -14,7 +14,7 @@ function emptyLootItem(): LootItem {
 }
 
 function emptyBossInput(): BossInput {
-  return { name: "", difficulty: "Normal", maxPartySize: 6, lootTable: [] };
+  return { name: "", difficulty: "Normal", maxPartySize: 6, lootTable: [], resetCadence: "weekly" };
 }
 
 export default function Bosses() {
@@ -69,7 +69,14 @@ export default function Bosses() {
                         />
                       )}
                       <div>
-                        <DifficultyBadge difficulty={boss.difficulty} />
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <DifficultyBadge difficulty={boss.difficulty} />
+                          {boss.resetCadence === "monthly" && (
+                            <span className="rounded-md bg-purple-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-purple-300">
+                              Monthly
+                            </span>
+                          )}
+                        </div>
                         <p className="mt-1 text-xs text-gray-500">
                           Party size: {boss.maxPartySize}
                         </p>
@@ -186,6 +193,7 @@ function BossFormModal({ boss, onClose }: { boss: Boss | null; onClose: () => vo
           maxPartySize: boss.maxPartySize,
           lootTable: boss.lootTable,
           imageUrl: boss.imageUrl,
+          resetCadence: boss.resetCadence ?? "weekly",
         }
       : emptyBossInput()
   );
@@ -268,20 +276,37 @@ function BossFormModal({ boss, onClose }: { boss: Boss | null; onClose: () => vo
           </div>
         </div>
 
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-400">
-            Max party size
-          </label>
-          <input
-            type="number"
-            min={1}
-            max={12}
-            value={form.maxPartySize}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, maxPartySize: Number(e.target.value) || 1 }))
-            }
-            className="w-28 rounded-md border border-white/10 bg-[#0f1115] px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-          />
+        <div className="flex gap-4">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-400">
+              Max party size
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={12}
+              value={form.maxPartySize}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, maxPartySize: Number(e.target.value) || 1 }))
+              }
+              className="w-28 rounded-md border border-white/10 bg-[#0f1115] px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-400">
+              "Cleared" toggle resets
+            </label>
+            <select
+              value={form.resetCadence ?? "weekly"}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, resetCadence: e.target.value as "weekly" | "monthly" }))
+              }
+              className="rounded-md border border-white/10 bg-[#0f1115] px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
+            >
+              <option value="weekly">Weekly (Thursday 00:00 GMT+0)</option>
+              <option value="monthly">Monthly (1st of the month, GMT+0)</option>
+            </select>
+          </div>
         </div>
 
         <div>

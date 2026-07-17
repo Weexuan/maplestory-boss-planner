@@ -7,6 +7,8 @@ export interface LootItem {
   iconUrl?: string;
 }
 
+export type ResetCadence = "weekly" | "monthly";
+
 export interface Boss {
   id: string;
   name: string;
@@ -14,6 +16,9 @@ export interface Boss {
   maxPartySize: number;
   lootTable: LootItem[];
   imageUrl?: string;
+  /** When the "cleared this week" toggle resets. Most bosses are weekly (Thursday 00:00
+   *  GMT+0); a few (e.g. Black Mage) are locked monthly instead. Absent = "weekly". */
+  resetCadence?: ResetCadence;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }
@@ -80,9 +85,10 @@ export interface UserProfile {
   lastSignInAt?: Timestamp;
 }
 
-/** Whether a party's boss has been cleared for the current boss week. One doc per
- *  (party, weekId) — a new week simply has no doc yet, i.e. uncleared, giving the weekly
- *  reset for free without any cron job. */
+/** Whether a party's boss has been cleared for the current reset period. One doc per
+ *  (party, period) — a new period simply has no doc yet, i.e. uncleared, giving the reset
+ *  for free without any cron job. `weekId` holds a weekly (Thursday) or monthly (1st) period
+ *  id depending on the boss's `resetCadence` — see utils/week.ts. */
 export interface PartyClear {
   id: string; // `${weekId}_${partyId}`
   weekId: string;

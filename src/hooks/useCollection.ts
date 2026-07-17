@@ -20,8 +20,12 @@ export function usePartiesCollection<T>(): UseCollectionResult<T> {
   return useLiveCollection<T>("parties", [orderBy("name")]);
 }
 
-export function useClearsForWeek<T>(weekId: string): UseCollectionResult<T> {
-  return useLiveCollection<T>("clears", [where("weekId", "==", weekId)], [weekId]);
+/** Fetches clears docs matching any of the given period ids — pass every currently-active
+ *  period (e.g. both this week's id and this month's id) so weekly- and monthly-cadence
+ *  bosses' toggles both resolve correctly from a single query. */
+export function useClearsForPeriods<T>(periodIds: string[]): UseCollectionResult<T> {
+  const uniqueIds = [...new Set(periodIds)];
+  return useLiveCollection<T>("clears", [where("weekId", "in", uniqueIds)], uniqueIds);
 }
 
 function useLiveCollection<T>(

@@ -1,4 +1,4 @@
-import type { Boss, LootAward, Party, PartyMember, Player } from "../types";
+import type { Boss, LootAward, Party, PartyMember, Player, ResetCadence } from "../types";
 
 /**
  * Party docs store a snapshot of boss/player/character/loot info at assignment time (so a party
@@ -10,6 +10,7 @@ import type { Boss, LootAward, Party, PartyMember, Player } from "../types";
  */
 export interface ResolvedParty extends Party {
   bossImageUrl?: string;
+  bossResetCadence: ResetCadence;
 }
 
 export function resolveParties(parties: Party[], bosses: Boss[], players: Player[]): ResolvedParty[] {
@@ -30,6 +31,7 @@ function resolveParty(
     bossName: boss?.name ?? party.bossName,
     bossDifficulty: boss?.difficulty ?? party.bossDifficulty,
     bossImageUrl: boss?.imageUrl,
+    bossResetCadence: boss?.resetCadence ?? "weekly",
     members: party.members.map((m) => resolveMember(m, playerById, lootById)),
   };
 }

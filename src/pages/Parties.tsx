@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   useBossesCollection,
-  useClearsForWeek,
+  useClearsForPeriods,
   usePartiesCollection,
   usePlayersCollection,
 } from "../hooks/useCollection";
@@ -16,7 +16,7 @@ import { LootAssignmentModal } from "../components/LootAssignmentModal";
 import { GiftIcon } from "../components/icons/GiftIcon";
 import { CheckCircleIcon } from "../components/icons/CheckCircleIcon";
 import { resolveParties, type ResolvedParty } from "../utils/resolveParty";
-import { getCurrentWeekId } from "../utils/week";
+import { getCurrentMonthId, getCurrentWeekId, getResetPeriodId } from "../utils/week";
 import type { Boss, Party, PartyClear, PartyInput, PartyMember, Player } from "../types";
 
 interface MemberRow {
@@ -31,10 +31,11 @@ function rowsFromMembers(members: PartyMember[]): MemberRow[] {
 
 export default function Parties() {
   const currentWeekId = getCurrentWeekId();
+  const currentMonthId = getCurrentMonthId();
   const { data: bosses, loading: bossesLoading } = useBossesCollection<Boss>();
   const { data: players, loading: playersLoading } = usePlayersCollection<Player>();
   const { data: parties, loading: partiesLoading } = usePartiesCollection<Party>();
-  const { data: clears } = useClearsForWeek<PartyClear>(currentWeekId);
+  const { data: clears } = useClearsForPeriods<PartyClear>([currentWeekId, currentMonthId]);
   const { gate } = useAuthGate();
   const { user, playerId: myPlayerId, signIn } = useAuth();
   const [editing, setEditing] = useState<ResolvedParty | null | "new">(null);
@@ -60,13 +61,14 @@ export default function Parties() {
     return map;
   }, [clears]);
 
-  const toggleCleared = async (partyId: string) => {
+  const toggleCleared = async (party: ResolvedParty) => {
     if (!user) {
       void signIn();
       return;
     }
-    const current = clearByPartyId.get(partyId)?.cleared ?? false;
-    await setCleared(currentWeekId, partyId, !current);
+    const periodId = getResetPeriodId(party.bossResetCadence);
+    const current = clearByPartyId.get(party.id)?.cleared ?? false;
+    await setCleared(periodId, party.id, !current);
   };
 
   // Party docs snapshot boss/player/loot info at assignment time — re-resolve against the live
@@ -83,10 +85,14 @@ export default function Parties() {
   );
 
   const grouped = useMemo(() => {
-    const groups: Record<string, { imageUrl?: string; parties: ResolvedParty[] }> = {};
+    const groups: Record<string, { imageUrl?: string; cadence: string; parties: ResolvedParty[] }> = {};
     for (const party of filteredParties) {
       const key = `${party.bossName} · ${party.bossDifficulty}`;
-      const group = (groups[key] ??= { imageUrl: party.bossImageUrl, parties: [] });
+      const group = (groups[key] ??= {
+        imageUrl: party.bossImageUrl,
+        cadence: party.bossResetCadence,
+        parties: [],
+      });
       group.parties.push(party);
     }
     return groups;
@@ -148,6 +154,11 @@ export default function Parties() {
                 />
               )}
               {groupKey}
+              {group.cadence === "monthly" && (
+                <span className="rounded-md bg-purple-500/15 px-1.5 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-purple-300">
+                  Resets monthly
+                </span>
+              )}
             </h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {group.parties.map((party) => {
@@ -164,7 +175,7 @@ export default function Parties() {
                           <h4 className="font-semibold text-white">{party.name}</h4>
                           <button
                             type="button"
-                            onClick={() => void toggleCleared(party.id)}
+                            onClick={() => void toggleCleared(party)}
                             title={cleared ? "Cleared this week — click to unmark" : "Mark cleared this week"}
                             aria-label="Toggle cleared this week"
                             className={`flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold transition-colors ${

@@ -14,6 +14,7 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { PlayerFilter, partyHasPlayer } from "../components/PlayerFilter";
 import { LootAssignmentModal } from "../components/LootAssignmentModal";
 import { GiftIcon } from "../components/icons/GiftIcon";
+import { CheckCircleIcon } from "../components/icons/CheckCircleIcon";
 import { resolveParties, type ResolvedParty } from "../utils/resolveParty";
 import { getCurrentWeekId } from "../utils/week";
 import type { Boss, Party, PartyClear, PartyInput, PartyMember, Player } from "../types";
@@ -159,20 +160,21 @@ export default function Parties() {
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2">
                           <h4 className="font-semibold text-white">{party.name}</h4>
                           <button
                             type="button"
                             onClick={() => void toggleCleared(party.id)}
                             title={cleared ? "Cleared this week — click to unmark" : "Mark cleared this week"}
                             aria-label="Toggle cleared this week"
-                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] leading-none transition-colors ${
+                            className={`flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold transition-colors ${
                               cleared
-                                ? "border-emerald-400 bg-emerald-500/20 text-emerald-300"
-                                : "border-white/25 text-transparent hover:border-white/50"
+                                ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-300"
+                                : "border-white/15 text-gray-500 hover:border-white/30 hover:text-gray-300"
                             }`}
                           >
-                            ✓
+                            <CheckCircleIcon className={`h-3 w-3 ${cleared ? "opacity-100" : "opacity-50"}`} />
+                            Cleared
                           </button>
                         </div>
                         <p className={`text-xs ${full ? "text-emerald-400" : "text-gray-500"}`}>

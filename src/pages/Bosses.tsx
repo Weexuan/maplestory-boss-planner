@@ -165,7 +165,6 @@ function DifficultyBadge({ difficulty }: { difficulty: string }) {
     hard: "bg-amber-500/15 text-amber-400",
     chaos: "bg-orange-500/15 text-orange-400",
     extreme: "bg-red-500/15 text-red-400",
-    hell: "bg-purple-500/15 text-purple-400",
   };
   const cls = colors[difficulty.toLowerCase()] ?? "bg-gray-500/15 text-gray-300";
   return (

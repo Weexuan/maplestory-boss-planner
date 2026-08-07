@@ -14,7 +14,7 @@ export interface CatalogBoss {
   loot: CatalogLootItem[];
 }
 
-export const DIFFICULTY_OPTIONS = ["Easy", "Normal", "Hard", "Chaos", "Extreme", "Hell"] as const;
+export const DIFFICULTY_OPTIONS = ["Easy", "Normal", "Hard", "Chaos", "Extreme"] as const;
 
 /**
  * Pre-populated boss/loot reference data so new setups don't start from a blank form.

@@ -5,9 +5,8 @@ import { useAuthGate } from "../hooks/useAuthGate";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ImagePicker } from "../components/ImagePicker";
+import { BOSS_CATALOG, DIFFICULTY_OPTIONS, type CatalogBoss } from "../data/bossCatalog";
 import type { Boss, BossInput, LootItem } from "../types";
-
-const DIFFICULTY_SUGGESTIONS = ["Easy", "Normal", "Hard", "Chaos", "Extreme", "Hell"];
 
 function emptyLootItem(): LootItem {
   return { id: crypto.randomUUID(), name: "", notes: "" };
@@ -197,8 +196,38 @@ function BossFormModal({ boss, onClose }: { boss: Boss | null; onClose: () => vo
         }
       : emptyBossInput()
   );
+  // "catalog" shows the boss-picker dropdown; "manual" shows free-text name entry.
+  // Editing an existing boss always starts in manual mode since it's already a set entity.
+  const [bossMode, setBossMode] = useState<"catalog" | "manual">(boss ? "manual" : "catalog");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Known loot pool for whichever boss is currently selected/being edited, so we can
+  // offer quick-add suggestions instead of forcing a fully manual entry every time.
+  const catalogBoss: CatalogBoss | undefined = BOSS_CATALOG.find((c) => c.name === form.name);
+  const suggestedLoot = (catalogBoss?.loot ?? []).filter(
+    (item) => !form.lootTable.some((existing) => existing.name === item.name)
+  );
+
+  const applyCatalogBoss = (name: string) => {
+    const catalog = BOSS_CATALOG.find((c) => c.name === name);
+    if (!catalog) return;
+    setForm((f) => ({
+      ...f,
+      name: catalog.name,
+      imageUrl: catalog.imageUrl,
+      maxPartySize: catalog.maxPartySize,
+      resetCadence: catalog.resetCadence,
+      difficulty: catalog.difficulties[0] ?? f.difficulty,
+    }));
+  };
+
+  const addLootFromCatalog = (item: { name: string; iconUrl: string }) => {
+    setForm((f) => ({
+      ...f,
+      lootTable: [...f.lootTable, { id: crypto.randomUUID(), name: item.name, iconUrl: item.iconUrl, notes: "" }],
+    }));
+  };
 
   const updateLootItem = (id: string, patch: Partial<LootItem>) => {
     setForm((f) => ({
@@ -240,6 +269,56 @@ function BossFormModal({ boss, onClose }: { boss: Boss | null; onClose: () => vo
   return (
     <Modal title={boss ? "Edit boss" : "Add boss"} onClose={onClose} wide>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {!boss && (
+          <div className="flex items-center justify-between rounded-md border border-white/10 bg-[#0f1115] p-2.5">
+            {bossMode === "catalog" ? (
+              <>
+                <div className="flex-1">
+                  <label className="mb-1 block text-xs font-medium text-gray-400">Boss</label>
+                  <select
+                    value={BOSS_CATALOG.some((c) => c.name === form.name) ? form.name : ""}
+                    onChange={(e) => e.target.value && applyCatalogBoss(e.target.value)}
+                    className="w-full rounded-md border border-white/10 bg-[#181a20] px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
+                  >
+                    <option value="" disabled>
+                      Select a boss…
+                    </option>
+                    {BOSS_CATALOG.map((c) => (
+                      <option key={c.name} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBossMode("manual");
+                    setForm((f) => ({ ...f, name: "", imageUrl: undefined }));
+                  }}
+                  className="ml-3 mt-4 shrink-0 whitespace-nowrap rounded-md border border-white/10 px-3 py-2 text-xs font-medium text-indigo-400 hover:bg-white/5"
+                >
+                  + New boss (not in list)
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-gray-500">Entering a new boss not in the catalog.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBossMode("catalog");
+                    setForm((f) => ({ ...f, name: "", imageUrl: undefined }));
+                  }}
+                  className="ml-3 shrink-0 whitespace-nowrap rounded-md border border-white/10 px-3 py-2 text-xs font-medium text-gray-300 hover:bg-white/5"
+                >
+                  ← Choose from list
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
         <div className="flex gap-3">
           <ImagePicker
             imageUrl={form.imageUrl}
@@ -256,22 +335,28 @@ function BossFormModal({ boss, onClose }: { boss: Boss | null; onClose: () => vo
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="e.g. Black Mage"
-                className="w-full rounded-md border border-white/10 bg-[#0f1115] px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
+                readOnly={!boss && bossMode === "catalog"}
+                className={`w-full rounded-md border border-white/10 bg-[#0f1115] px-3 py-2 text-sm text-white outline-none focus:border-indigo-500 ${
+                  !boss && bossMode === "catalog" ? "opacity-70" : ""
+                }`}
               />
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-400">Difficulty</label>
-              <input
-                list="difficulty-options"
+              <select
                 value={form.difficulty}
                 onChange={(e) => setForm((f) => ({ ...f, difficulty: e.target.value }))}
                 className="w-full rounded-md border border-white/10 bg-[#0f1115] px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-              />
-              <datalist id="difficulty-options">
-                {DIFFICULTY_SUGGESTIONS.map((d) => (
-                  <option key={d} value={d} />
+              >
+                {!DIFFICULTY_OPTIONS.includes(form.difficulty as (typeof DIFFICULTY_OPTIONS)[number]) && (
+                  <option value={form.difficulty}>{form.difficulty}</option>
+                )}
+                {DIFFICULTY_OPTIONS.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
                 ))}
-              </datalist>
+              </select>
             </div>
           </div>
         </div>
@@ -319,9 +404,30 @@ function BossFormModal({ boss, onClose }: { boss: Boss | null; onClose: () => vo
               }
               className="text-xs font-medium text-indigo-400 hover:text-indigo-300"
             >
-              + Add item
+              + Add new loot (not in list)
             </button>
           </div>
+          {suggestedLoot.length > 0 && (
+            <div className="mb-2">
+              <p className="mb-1 text-[11px] text-gray-500">
+                Known loot for {catalogBoss?.name} — click to add:
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {suggestedLoot.map((item) => (
+                  <button
+                    key={item.name}
+                    type="button"
+                    onClick={() => addLootFromCatalog(item)}
+                    className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-gray-300 hover:border-indigo-500 hover:text-white"
+                  >
+                    <img src={item.iconUrl} alt="" className="h-3.5 w-3.5 object-contain" />
+                    {item.name}
+                    <span className="text-indigo-400">+</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
             {form.lootTable.map((item) => (
               <div key={item.id} className="flex gap-2">

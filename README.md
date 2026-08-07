@@ -130,17 +130,23 @@ from the Admin page, add data in this order:
 
 1. **Bosses** (`/bosses`) — add each boss/difficulty combo you run (e.g.
    "Black Mage / Extreme" and "Black Mage / Hard" are separate entries, since
-   loot differs by difficulty). Click the icon swatch next to the boss name
-   to paste/drag in an image, and do the same for each loot item you add to
-   its loot table.
+   loot differs by difficulty). The "Add boss" form includes a **Boss**
+   dropdown pre-populated with a starter catalog (name, portrait, party size,
+   and known loot with icons) from [`src/data/bossCatalog.ts`](src/data/bossCatalog.ts) —
+   picking one auto-fills the form and shows its loot as click-to-add chips.
+   If a boss or loot item isn't in the catalog, use the **+ New boss (not in
+   list)** / **+ Add new loot (not in list)** buttons to enter it manually
+   (paste/drag an image via the icon swatch). Feel free to edit
+   `bossCatalog.ts` directly to add your own server's bosses/loot to the
+   dropdown for everyone who uses your fork.
 2. **Players** (`/players`) — add each real-life player, then add their
    in-game characters (IGN + class) underneath.
 3. **Parties** (`/parties`) — pick a boss, name the party, and assign
    characters from your player roster into it. Click the 🎁 icon on a party
    afterward to record who's been awarded which loot item.
 
-Once again, everything — boss portraits, loot icons, rosters, party compositions — is
-whatever you put in; there's no example/demo content bundled with the app.
+The catalog only pre-fills the *form* — your Firestore database still starts
+empty, and nothing is written until you actually save a boss/player/party.
 
 ## Data model
 

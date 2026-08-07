@@ -5,7 +5,7 @@ import { useAuthGate } from "../hooks/useAuthGate";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { ImagePicker } from "../components/ImagePicker";
-import { BOSS_CATALOG, DIFFICULTY_OPTIONS, type CatalogBoss } from "../data/bossCatalog";
+import { BOSS_CATALOG, DIFFICULTY_OPTIONS, LOOT_CATALOG } from "../data/bossCatalog";
 import type { Boss, BossInput, LootItem } from "../types";
 
 function emptyLootItem(): LootItem {
@@ -201,10 +201,9 @@ function BossFormModal({ boss, onClose }: { boss: Boss | null; onClose: () => vo
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Known loot pool for whichever boss is currently selected/being edited, so we can
-  // offer quick-add suggestions instead of forcing a fully manual entry every time.
-  const catalogBoss: CatalogBoss | undefined = BOSS_CATALOG.find((c) => c.name === form.name);
-  const suggestedLoot = (catalogBoss?.loot ?? []).filter(
+  // General loot list, independent of which boss is selected, so any known item can be
+  // quick-added instead of forcing a fully manual entry every time.
+  const availableLoot = LOOT_CATALOG.filter(
     (item) => !form.lootTable.some((existing) => existing.name === item.name)
   );
 
@@ -406,25 +405,25 @@ function BossFormModal({ boss, onClose }: { boss: Boss | null; onClose: () => vo
               + Add new loot (not in list)
             </button>
           </div>
-          {suggestedLoot.length > 0 && (
+          {availableLoot.length > 0 && (
             <div className="mb-2">
-              <p className="mb-1 text-[11px] text-gray-500">
-                Known loot for {catalogBoss?.name} — click to add:
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {suggestedLoot.map((item) => (
-                  <button
-                    key={item.name}
-                    type="button"
-                    onClick={() => addLootFromCatalog(item)}
-                    className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-gray-300 hover:border-indigo-500 hover:text-white"
-                  >
-                    <img src={item.iconUrl} alt="" className="h-3.5 w-3.5 object-contain" />
+              <select
+                value=""
+                onChange={(e) => {
+                  const item = availableLoot.find((i) => i.name === e.target.value);
+                  if (item) addLootFromCatalog(item);
+                }}
+                className="w-full rounded-md border border-white/10 bg-[#0f1115] px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
+              >
+                <option value="" disabled>
+                  + Add existing loot…
+                </option>
+                {availableLoot.map((item) => (
+                  <option key={item.name} value={item.name}>
                     {item.name}
-                    <span className="text-indigo-400">+</span>
-                  </button>
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
           )}
           <div className="max-h-64 space-y-2 overflow-y-auto pr-1">

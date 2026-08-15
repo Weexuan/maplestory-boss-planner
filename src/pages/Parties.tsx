@@ -12,6 +12,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Modal } from "../components/Modal";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { PlayerFilter, partyHasPlayer } from "../components/PlayerFilter";
+import { BossFilter, partyHasBoss } from "../components/BossFilter";
 import { LootAssignmentModal } from "../components/LootAssignmentModal";
 import { GiftIcon } from "../components/icons/GiftIcon";
 import { CheckCircleIcon } from "../components/icons/CheckCircleIcon";
@@ -42,6 +43,7 @@ export default function Parties() {
   const [deleting, setDeleting] = useState<ResolvedParty | null>(null);
   const [lootParty, setLootParty] = useState<ResolvedParty | null>(null);
   const [playerId, setPlayerId] = useState("");
+  const [bossId, setBossId] = useState("");
 
   // Default the filter to "my" parties once we know who that is, but only once — don't
   // stomp a filter the user picked themselves.
@@ -80,8 +82,9 @@ export default function Parties() {
   );
 
   const filteredParties = useMemo(
-    () => resolvedParties.filter((p) => partyHasPlayer(p, playerId)),
-    [resolvedParties, playerId]
+    () =>
+      resolvedParties.filter((p) => partyHasPlayer(p, playerId) && partyHasBoss(p, bossId)),
+    [resolvedParties, playerId, bossId]
   );
 
   const grouped = useMemo(() => {
@@ -108,6 +111,7 @@ export default function Parties() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <BossFilter bosses={bosses} value={bossId} onChange={setBossId} />
           <PlayerFilter players={players} value={playerId} onChange={setPlayerId} />
           <button
             onClick={() =>
@@ -138,7 +142,7 @@ export default function Parties() {
       )}
       {!loading && parties.length > 0 && filteredParties.length === 0 && (
         <div className="rounded-xl border border-dashed border-white/10 py-10 text-center text-sm text-gray-500">
-          This player isn't in any parties yet.
+          No parties match the selected filters.
         </div>
       )}
 

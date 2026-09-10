@@ -14,13 +14,15 @@ player to quickly find who's running what. Track which loot each party
 member can be awarded, and link each signed-in Google account to a player
 profile with admin-controlled edit permissions.
 
-Each party can also be given a planned run time (GMT+8) on the **Schedule**
-page — a calendar showing which bosses are running when, with the players
-and IGNs in each party, filterable by player. A party can only be scheduled
-within its boss's *current* reset period — weekly bosses within the current
-week (until the next Thursday 8:00 AM GMT+8 reset), monthly bosses within
-the current month (until the next 1st, 8:00 AM GMT+8 reset) — so you can't
-plan the following period until the current one actually resets.
+The **Schedule** page is a Google Calendar-style weekly grid (GMT+8) showing
+which bosses are running when, with the players and IGNs in each party,
+filterable by player. Click an empty slot (or "+ Schedule a party") to plan
+a run, or click an existing run to edit or clear it — all directly on that
+page. A party can only be scheduled within its boss's *current* reset
+period — weekly bosses within the current week (until the next Thursday
+8:00 AM GMT+8 reset), monthly bosses within the current month (until the
+next 1st, 8:00 AM GMT+8 reset) — so you can't plan the following period
+until the current one actually resets.
 
 Stack: React + TypeScript + Vite, Tailwind CSS, Firebase (Auth + Firestore),
 React Router. Deploys as a static site (tested on Vercel).
@@ -153,14 +155,17 @@ from the Admin page, add data in this order:
    in-game characters (IGN + class) underneath.
 3. **Parties** (`/parties`) — pick a boss, name the party, and assign
    characters from your player roster into it. Click the 🎁 icon on a party
-   afterward to record who's been awarded which loot item, or the 🕐 icon to
-   set when it's running this week. Use the **boss** and **player** dropdowns
-   at the top of the page to filter the list down.
-4. **Schedule** (`/schedule`) — a read-only calendar of every party's planned
-   run time (GMT+8), grouped by day, with each party's members and IGNs
-   listed underneath, filterable by player. Each boss's schedule resets on
-   that boss's own cadence — weekly (Thursday 8:00 AM GMT+8) or monthly (the
-   1st, 8:00 AM GMT+8) — and only unlocks the next period once
+   afterward to record who's been awarded which loot item. Use the **boss**
+   and **player** dropdowns at the top of the page to filter the list down.
+   The small clock line under a party's member count shows its scheduled
+   run time (if any) and links to the Schedule page.
+4. **Schedule** (`/schedule`) — a weekly calendar grid (GMT+8) of every
+   party's planned run time, with each party's members and IGNs shown on
+   its block, filterable by player. Click an empty slot (or "+ Schedule a
+   party") to plan a run there, or click an existing block to edit or clear
+   it — this is the only place run times are set. Each boss's schedule
+   resets on that boss's own cadence — weekly (Thursday 8:00 AM GMT+8) or
+   monthly (the 1st, 8:00 AM GMT+8) — and only unlocks the next period once
    the current one actually resets.
 
 The catalog only pre-fills the *form* — your Firestore database still starts
@@ -194,7 +199,8 @@ empty, and nothing is written until you actually save a boss/player/party.
 ```
 src/
   components/    Modal, ConfirmDialog, Navbar, Layout, ImagePicker,
-                 LootAssignmentModal, ScheduleTimeModal, CharacterPromptModal,
+                 LootAssignmentModal, ScheduleTimeModal,
+                 SchedulePartyPickerModal, CharacterPromptModal,
                  PlayerFilter, BossFilter, icons/
   contexts/      AuthContext (Firebase Auth + role/admin/playerId state)
   hooks/         Firestore live-collection hooks, auth-gate helper

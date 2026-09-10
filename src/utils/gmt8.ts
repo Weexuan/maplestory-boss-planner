@@ -60,3 +60,14 @@ export function gmt8DayKey(date: Date): string {
   const p = gmt8Parts(date);
   return `${p.year}-${pad(p.month + 1)}-${pad(p.day)}`;
 }
+
+/** The GMT+8 hour-of-day (0-23) this instant falls in. */
+export function gmt8Hour(date: Date): number {
+  return gmt8Parts(date).hours;
+}
+
+/** "12 AM", "1 AM", ... "11 PM" label for an hour-of-day (0-23). */
+export function formatHourLabel(hour: number): string {
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${h12} ${hour < 12 ? "AM" : "PM"}`;
+}

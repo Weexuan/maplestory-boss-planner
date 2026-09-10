@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import {
   useBossesCollection,
   useClearsForPeriods,
@@ -15,12 +16,11 @@ import { ConfirmDialog } from "../components/ConfirmDialog";
 import { PlayerFilter, partyHasPlayer } from "../components/PlayerFilter";
 import { BossFilter, partyHasBoss } from "../components/BossFilter";
 import { LootAssignmentModal } from "../components/LootAssignmentModal";
-import { ScheduleTimeModal } from "../components/ScheduleTimeModal";
 import { GiftIcon } from "../components/icons/GiftIcon";
 import { CheckCircleIcon } from "../components/icons/CheckCircleIcon";
 import { ClockIcon } from "../components/icons/ClockIcon";
 import { resolveParties, type ResolvedParty } from "../utils/resolveParty";
-import { getCurrentMonthId, getCurrentResetPeriod, getCurrentWeekId, getResetPeriodId } from "../utils/week";
+import { getCurrentMonthId, getCurrentWeekId, getResetPeriodId } from "../utils/week";
 import { formatGmt8DateTime } from "../utils/gmt8";
 import type { Boss, Party, PartyClear, PartyInput, PartyMember, Player, PartySchedule } from "../types";
 
@@ -47,7 +47,6 @@ export default function Parties() {
   const [editing, setEditing] = useState<ResolvedParty | null | "new">(null);
   const [deleting, setDeleting] = useState<ResolvedParty | null>(null);
   const [lootParty, setLootParty] = useState<ResolvedParty | null>(null);
-  const [schedulingParty, setSchedulingParty] = useState<ResolvedParty | null>(null);
   const [playerId, setPlayerId] = useState("");
   const [bossId, setBossId] = useState("");
 
@@ -56,10 +55,6 @@ export default function Parties() {
     for (const s of schedules) map.set(s.partyId, s);
     return map;
   }, [schedules]);
-
-  // Each party can only be scheduled within its own boss's current reset period — the next
-  // period unlocks once that boss actually resets (weekly Thursday or monthly 1st).
-  const schedulingPeriod = schedulingParty ? getCurrentResetPeriod(schedulingParty.bossResetCadence) : null;
 
   // Default the filter to "my" parties once we know who that is, but only once — don't
   // stomp a filter the user picked themselves.
@@ -212,24 +207,18 @@ export default function Parties() {
                         <p className={`text-xs ${full ? "text-emerald-400" : "text-gray-500"}`}>
                           {party.members.length} / {party.maxSize} members
                         </p>
-                        <p
-                          className={`mt-1 flex items-center gap-1 text-xs ${
+                        <Link
+                          to="/schedule"
+                          title="Manage run times on the Schedule page"
+                          className={`mt-1 flex items-center gap-1 text-xs hover:underline ${
                             schedule ? "text-indigo-300" : "text-gray-600"
                           }`}
                         >
                           <ClockIcon className="h-3 w-3" />
                           {schedule ? formatGmt8DateTime(schedule.scheduledAt.toDate()) : "Not scheduled"}
-                        </p>
+                        </Link>
                       </div>
                       <div className="flex gap-1">
-                        <button
-                          onClick={() => gate(() => setSchedulingParty(party))}
-                          className="rounded p-1.5 text-gray-400 hover:bg-white/10 hover:text-white"
-                          aria-label="Set run time"
-                          title="Set run time"
-                        >
-                          <ClockIcon className="h-4 w-4" />
-                        </button>
                         <button
                           onClick={() => gate(() => setLootParty(party))}
                           className="rounded p-1.5 text-gray-400 hover:bg-white/10 hover:text-white"
@@ -322,19 +311,6 @@ export default function Parties() {
           party={lootParty}
           boss={bosses.find((b) => b.id === lootParty.bossId)}
           onClose={() => setLootParty(null)}
-        />
-      )}
-
-      {schedulingParty && schedulingPeriod && (
-        <ScheduleTimeModal
-          partyId={schedulingParty.id}
-          partyName={schedulingParty.name}
-          weekId={schedulingPeriod.id}
-          cadence={schedulingParty.bossResetCadence}
-          minDate={new Date()}
-          maxDate={schedulingPeriod.end}
-          currentScheduledAt={scheduleByPartyId.get(schedulingParty.id)?.scheduledAt.toDate()}
-          onClose={() => setSchedulingParty(null)}
         />
       )}
     </div>

@@ -12,6 +12,8 @@ interface ScheduleTimeModalProps {
   minDate: Date;
   maxDate: Date;
   currentScheduledAt?: Date;
+  /** Seeds the picker when there's no existing time yet (e.g. the calendar slot that was clicked). */
+  initialTime?: Date;
   onClose: () => void;
 }
 
@@ -29,6 +31,7 @@ export function ScheduleTimeModal({
   minDate,
   maxDate,
   currentScheduledAt,
+  initialTime,
   onClose,
 }: ScheduleTimeModalProps) {
   const periodLabel = cadence === "monthly" ? "month" : "week";
@@ -38,7 +41,7 @@ export function ScheduleTimeModal({
       : "every Thursday 8:00 AM GMT+8";
 
   const [value, setValue] = useState(() =>
-    toDatetimeLocalValue(clampToRange(currentScheduledAt ?? minDate, minDate, maxDate))
+    toDatetimeLocalValue(clampToRange(currentScheduledAt ?? initialTime ?? minDate, minDate, maxDate))
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -64,9 +64,6 @@ export default function Schedule() {
     return [...map.values()].sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [schedules, partyById, filteredPartyIds]);
 
-  const scheduledPartyIds = useMemo(() => new Set(schedules.map((s) => s.partyId)), [schedules]);
-  const unscheduled = filteredParties.filter((p) => !scheduledPartyIds.has(p.id));
-
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -145,24 +142,6 @@ export default function Schedule() {
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {!loading && unscheduled.length > 0 && (
-        <div className="mt-6">
-          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            Not yet scheduled
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {unscheduled.map((p) => (
-              <span
-                key={p.id}
-                className="rounded-full bg-white/5 px-3 py-1 text-xs text-gray-300"
-              >
-                {p.name} · {p.bossName} ({p.bossDifficulty})
-              </span>
-            ))}
-          </div>
         </div>
       )}
     </div>

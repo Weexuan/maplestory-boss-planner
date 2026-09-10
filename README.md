@@ -158,10 +158,9 @@ from the Admin page, add data in this order:
    at the top of the page to filter the list down.
 4. **Schedule** (`/schedule`) — a read-only calendar of every party's planned
    run time (GMT+8), grouped by day, with each party's members and IGNs
-   listed underneath, filterable by player. Any party without a time set yet
-   shows up under "Not yet scheduled" as a reminder. Each boss's schedule
-   resets on that boss's own cadence — weekly (Thursday 8:00 AM GMT+8) or
-   monthly (the 1st, 8:00 AM GMT+8) — and only unlocks the next period once
+   listed underneath, filterable by player. Each boss's schedule resets on
+   that boss's own cadence — weekly (Thursday 8:00 AM GMT+8) or monthly (the
+   1st, 8:00 AM GMT+8) — and only unlocks the next period once
    the current one actually resets.
 
 The catalog only pre-fills the *form* — your Firestore database still starts

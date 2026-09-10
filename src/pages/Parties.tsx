@@ -4,7 +4,7 @@ import {
   useClearsForPeriods,
   usePartiesCollection,
   usePlayersCollection,
-  useSchedulesForWeek,
+  useSchedulesForPeriods,
 } from "../hooks/useCollection";
 import { createParty, deleteParty, updateParty } from "../services/parties";
 import { setCleared } from "../services/clears";
@@ -20,7 +20,7 @@ import { GiftIcon } from "../components/icons/GiftIcon";
 import { CheckCircleIcon } from "../components/icons/CheckCircleIcon";
 import { ClockIcon } from "../components/icons/ClockIcon";
 import { resolveParties, type ResolvedParty } from "../utils/resolveParty";
-import { getCurrentMonthId, getCurrentWeekId, getResetPeriodId, getWeekBounds } from "../utils/week";
+import { getCurrentMonthId, getCurrentResetPeriod, getCurrentWeekId, getResetPeriodId } from "../utils/week";
 import { formatGmt8DateTime } from "../utils/gmt8";
 import type { Boss, Party, PartyClear, PartyInput, PartyMember, Player, PartySchedule } from "../types";
 
@@ -41,7 +41,7 @@ export default function Parties() {
   const { data: players, loading: playersLoading } = usePlayersCollection<Player>();
   const { data: parties, loading: partiesLoading } = usePartiesCollection<Party>();
   const { data: clears } = useClearsForPeriods<PartyClear>([currentWeekId, currentMonthId]);
-  const { data: schedules } = useSchedulesForWeek<PartySchedule>(currentWeekId);
+  const { data: schedules } = useSchedulesForPeriods<PartySchedule>([currentWeekId, currentMonthId]);
   const { gate } = useAuthGate();
   const { user, playerId: myPlayerId, signIn } = useAuth();
   const [editing, setEditing] = useState<ResolvedParty | null | "new">(null);
@@ -51,12 +51,15 @@ export default function Parties() {
   const [playerId, setPlayerId] = useState("");
   const [bossId, setBossId] = useState("");
 
-  const scheduleWeekBounds = useMemo(() => getWeekBounds(currentWeekId), [currentWeekId]);
   const scheduleByPartyId = useMemo(() => {
     const map = new Map<string, PartySchedule>();
     for (const s of schedules) map.set(s.partyId, s);
     return map;
   }, [schedules]);
+
+  // Each party can only be scheduled within its own boss's current reset period — the next
+  // period unlocks once that boss actually resets (weekly Thursday or monthly 1st).
+  const schedulingPeriod = schedulingParty ? getCurrentResetPeriod(schedulingParty.bossResetCadence) : null;
 
   // Default the filter to "my" parties once we know who that is, but only once — don't
   // stomp a filter the user picked themselves.
@@ -322,13 +325,14 @@ export default function Parties() {
         />
       )}
 
-      {schedulingParty && (
+      {schedulingParty && schedulingPeriod && (
         <ScheduleTimeModal
           partyId={schedulingParty.id}
           partyName={schedulingParty.name}
-          weekId={currentWeekId}
+          weekId={schedulingPeriod.id}
+          cadence={schedulingParty.bossResetCadence}
           minDate={new Date()}
-          maxDate={scheduleWeekBounds.end}
+          maxDate={schedulingPeriod.end}
           currentScheduledAt={scheduleByPartyId.get(schedulingParty.id)?.scheduledAt.toDate()}
           onClose={() => setSchedulingParty(null)}
         />

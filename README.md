@@ -15,10 +15,12 @@ member can be awarded, and link each signed-in Google account to a player
 profile with admin-controlled edit permissions.
 
 Each party can also be given a planned run time (GMT+8) on the **Schedule**
-page — a weekly calendar showing which bosses are running when, with the
-players and IGNs in each party. Scheduling resets every Thursday 8:00 AM
-GMT+8 (the same instant as MapleStory's weekly boss reset), and times can
-only be set up to 1 week ahead.
+page — a calendar showing which bosses are running when, with the players
+and IGNs in each party, filterable by player. A party can only be scheduled
+within its boss's *current* reset period — weekly bosses within the current
+week (until the next Thursday 8:00 AM GMT+8 reset), monthly bosses within
+the current month (until the next 1st, 8:00 AM GMT+8 reset) — so you can't
+plan the following period until the current one actually resets.
 
 Stack: React + TypeScript + Vite, Tailwind CSS, Firebase (Auth + Firestore),
 React Router. Deploys as a static site (tested on Vercel).
@@ -154,11 +156,13 @@ from the Admin page, add data in this order:
    afterward to record who's been awarded which loot item, or the 🕐 icon to
    set when it's running this week. Use the **boss** and **player** dropdowns
    at the top of the page to filter the list down.
-4. **Schedule** (`/schedule`) — a read-only weekly calendar of every party's
-   planned run time (GMT+8), grouped by day, with each party's members and
-   IGNs listed underneath. Any party without a time set yet shows up under
-   "Not yet scheduled" as a reminder. The whole board resets every Thursday
-   8:00 AM GMT+8, and a run time can only be set up to 1 week ahead of now.
+4. **Schedule** (`/schedule`) — a read-only calendar of every party's planned
+   run time (GMT+8), grouped by day, with each party's members and IGNs
+   listed underneath, filterable by player. Any party without a time set yet
+   shows up under "Not yet scheduled" as a reminder. Each boss's schedule
+   resets on that boss's own cadence — weekly (Thursday 8:00 AM GMT+8) or
+   monthly (the 1st, 8:00 AM GMT+8) — and only unlocks the next period once
+   the current one actually resets.
 
 The catalog only pre-fills the *form* — your Firestore database still starts
 empty, and nothing is written until you actually save a boss/player/party.
@@ -177,11 +181,11 @@ empty, and nothing is written until you actually save a boss/player/party.
   awarded). Party/boss/player display data is re-resolved against the live
   collections at render time, so renaming a boss or player updates everywhere
   it's used without having to re-edit every party.
-- **schedules** — a party's planned run time for the current weekly period,
-  one document per (party, week). Keyed to a fixed weekly period (Thursday
-  00:00 UTC / 08:00 GMT+8) independent of the boss's own `resetCadence`, so
-  scheduling always resets weekly even for monthly-cadence bosses like Black
-  Mage. A new week simply has no document yet, i.e. unscheduled.
+- **schedules** — a party's planned run time for its boss's *current* reset
+  period, one document per (party, period) — same pattern as `clears`, keyed
+  to the same period id, so a party can only be scheduled up to its boss's
+  next reset (weekly Thursday or monthly 1st). A new period simply has no
+  document yet, i.e. unscheduled.
 - **users** — one document per signed-in Google account: role
   (`viewer`/`editor`) and an optional linked `playerId`. Only readable by the
   admin or by the account itself.

@@ -28,9 +28,12 @@ export function useClearsForPeriods<T>(periodIds: string[]): UseCollectionResult
   return useLiveCollection<T>("clears", [where("weekId", "in", uniqueIds)], uniqueIds);
 }
 
-/** Fetches scheduled run times for the given weekly schedule period. */
-export function useSchedulesForWeek<T>(weekId: string): UseCollectionResult<T> {
-  return useLiveCollection<T>("schedules", [where("weekId", "==", weekId)], [weekId]);
+/** Fetches scheduled run times matching any of the given period ids — pass every currently
+ *  active period (e.g. both this week's id and this month's id) so weekly- and
+ *  monthly-cadence bosses' schedules both resolve from a single query. */
+export function useSchedulesForPeriods<T>(periodIds: string[]): UseCollectionResult<T> {
+  const uniqueIds = [...new Set(periodIds)];
+  return useLiveCollection<T>("schedules", [where("weekId", "in", uniqueIds)], uniqueIds);
 }
 
 function useLiveCollection<T>(

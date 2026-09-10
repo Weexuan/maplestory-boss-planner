@@ -38,3 +38,23 @@ export function getWeekBounds(weekId: string): { start: Date; end: Date } {
   const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
   return { start, end };
 }
+
+/** Start (inclusive) and end (exclusive) instants of the monthly period identified by monthId. */
+export function getMonthBounds(monthId: string): { start: Date; end: Date } {
+  const start = new Date(`${monthId}T00:00:00.000Z`);
+  const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
+  return { start, end };
+}
+
+/** The reset period a boss with the given cadence is currently in — its id plus the window
+ *  (start/end instants) that a party's scheduled run time must fall within. The next period
+ *  only becomes plannable once this one resets. */
+export function getCurrentResetPeriod(cadence: ResetCadence = "weekly"): {
+  id: string;
+  start: Date;
+  end: Date;
+} {
+  const id = getResetPeriodId(cadence);
+  const { start, end } = cadence === "monthly" ? getMonthBounds(id) : getWeekBounds(id);
+  return { id, start, end };
+}

@@ -97,10 +97,10 @@ export interface PartyClear {
   updatedAt?: Timestamp;
 }
 
-/** A party's planned run time for one weekly schedule period. Always keyed to the fixed
- *  weekly (Thursday 00:00 UTC / 08:00 GMT+8) period regardless of the boss's own
- *  `resetCadence` — scheduling resets every week even for monthly-cadence bosses. A new
- *  period simply has no doc yet, i.e. unscheduled. */
+/** A party's planned run time for its boss's current reset period — same (party, period)
+ *  pattern as PartyClear, and keyed to the same period id, so scheduling only unlocks the
+ *  next period once that boss's reset actually happens (weekly Thursday or monthly 1st). A
+ *  new period simply has no doc yet, i.e. unscheduled. */
 export interface PartySchedule {
   id: string; // `${weekId}_${partyId}`
   weekId: string;

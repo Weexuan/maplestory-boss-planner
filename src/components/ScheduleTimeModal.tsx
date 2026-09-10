@@ -2,11 +2,13 @@ import { useState, type FormEvent } from "react";
 import { Modal } from "./Modal";
 import { clearSchedule, setSchedule } from "../services/schedules";
 import { fromDatetimeLocalValue, toDatetimeLocalValue } from "../utils/gmt8";
+import type { ResetCadence } from "../types";
 
 interface ScheduleTimeModalProps {
   partyId: string;
   partyName: string;
   weekId: string;
+  cadence: ResetCadence;
   minDate: Date;
   maxDate: Date;
   currentScheduledAt?: Date;
@@ -23,11 +25,18 @@ export function ScheduleTimeModal({
   partyId,
   partyName,
   weekId,
+  cadence,
   minDate,
   maxDate,
   currentScheduledAt,
   onClose,
 }: ScheduleTimeModalProps) {
+  const periodLabel = cadence === "monthly" ? "month" : "week";
+  const resetLabel =
+    cadence === "monthly"
+      ? "the 1st of the month, 8:00 AM GMT+8"
+      : "every Thursday 8:00 AM GMT+8";
+
   const [value, setValue] = useState(() =>
     toDatetimeLocalValue(clampToRange(currentScheduledAt ?? minDate, minDate, maxDate))
   );
@@ -38,7 +47,7 @@ export function ScheduleTimeModal({
     e.preventDefault();
     const date = fromDatetimeLocalValue(value);
     if (date < minDate || date > maxDate) {
-      setError("Pick a time within this week's schedule — up to 1 week ahead of now.");
+      setError(`Pick a time within the current ${periodLabel} — this boss's schedule resets ${resetLabel}.`);
       return;
     }
     setSaving(true);
@@ -71,7 +80,8 @@ export function ScheduleTimeModal({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-400">
-            Time (GMT+8) — schedule resets every Thursday 8:00 AM GMT+8, up to 1 week ahead
+            Time (GMT+8) — you can only schedule within the current {periodLabel}; the next
+            one unlocks once this boss resets ({resetLabel})
           </label>
           <input
             type="datetime-local"

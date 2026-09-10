@@ -31,3 +31,10 @@ export function getCurrentMonthId(): string {
 export function getResetPeriodId(cadence: ResetCadence = "weekly"): string {
   return cadence === "monthly" ? getCurrentMonthId() : getCurrentWeekId();
 }
+
+/** Start (inclusive) and end (exclusive) instants of the weekly period identified by weekId. */
+export function getWeekBounds(weekId: string): { start: Date; end: Date } {
+  const start = new Date(`${weekId}T00:00:00.000Z`);
+  const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+  return { start, end };
+}

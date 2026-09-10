@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 const baseLinks = [
   { to: "/", label: "Parties", end: true },
+  { to: "/schedule", label: "Schedule" },
   { to: "/bosses", label: "Bosses" },
   { to: "/players", label: "Players" },
 ];

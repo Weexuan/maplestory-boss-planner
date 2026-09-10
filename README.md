@@ -9,9 +9,16 @@ Here's what a fully set-up board looks like once you've filled it all in:
 
 What the website can do: manage boss configs (name, difficulty, loot
 table with icons), player profiles (with multiple characters each), and build
-boss parties from those characters. Track which loot each party member can
-be awarded, and link each signed-in Google account to a player profile with
-admin-controlled edit permissions.
+boss parties from those characters. Filter the party list by boss or by
+player to quickly find who's running what. Track which loot each party
+member can be awarded, and link each signed-in Google account to a player
+profile with admin-controlled edit permissions.
+
+Each party can also be given a planned run time (GMT+8) on the **Schedule**
+page — a weekly calendar showing which bosses are running when, with the
+players and IGNs in each party. Scheduling resets every Thursday 8:00 AM
+GMT+8 (the same instant as MapleStory's weekly boss reset), and times can
+only be set up to 1 week ahead.
 
 Stack: React + TypeScript + Vite, Tailwind CSS, Firebase (Auth + Firestore),
 React Router. Deploys as a static site (tested on Vercel).
@@ -144,7 +151,14 @@ from the Admin page, add data in this order:
    in-game characters (IGN + class) underneath.
 3. **Parties** (`/parties`) — pick a boss, name the party, and assign
    characters from your player roster into it. Click the 🎁 icon on a party
-   afterward to record who's been awarded which loot item.
+   afterward to record who's been awarded which loot item, or the 🕐 icon to
+   set when it's running this week. Use the **boss** and **player** dropdowns
+   at the top of the page to filter the list down.
+4. **Schedule** (`/schedule`) — a read-only weekly calendar of every party's
+   planned run time (GMT+8), grouped by day, with each party's members and
+   IGNs listed underneath. Any party without a time set yet shows up under
+   "Not yet scheduled" as a reminder. The whole board resets every Thursday
+   8:00 AM GMT+8, and a run time can only be set up to 1 week ahead of now.
 
 The catalog only pre-fills the *form* — your Firestore database still starts
 empty, and nothing is written until you actually save a boss/player/party.
@@ -163,6 +177,11 @@ empty, and nothing is written until you actually save a boss/player/party.
   awarded). Party/boss/player display data is re-resolved against the live
   collections at render time, so renaming a boss or player updates everywhere
   it's used without having to re-edit every party.
+- **schedules** — a party's planned run time for the current weekly period,
+  one document per (party, week). Keyed to a fixed weekly period (Thursday
+  00:00 UTC / 08:00 GMT+8) independent of the boss's own `resetCadence`, so
+  scheduling always resets weekly even for monthly-cadence bosses like Black
+  Mage. A new week simply has no document yet, i.e. unscheduled.
 - **users** — one document per signed-in Google account: role
   (`viewer`/`editor`) and an optional linked `playerId`. Only readable by the
   admin or by the account itself.
@@ -172,12 +191,14 @@ empty, and nothing is written until you actually save a boss/player/party.
 ```
 src/
   components/    Modal, ConfirmDialog, Navbar, Layout, ImagePicker,
-                 LootAssignmentModal, CharacterPromptModal, icons/
+                 LootAssignmentModal, ScheduleTimeModal, CharacterPromptModal,
+                 PlayerFilter, BossFilter, icons/
   contexts/      AuthContext (Firebase Auth + role/admin/playerId state)
   hooks/         Firestore live-collection hooks, auth-gate helper
-  pages/         Parties (home), Bosses, Players, Admin
+  pages/         Parties (home), Schedule, Bosses, Players, Admin
   services/      Firestore CRUD calls per collection
-  utils/         resolveParty.ts (live re-resolution), image.ts, mapleClasses.ts
+  utils/         resolveParty.ts (live re-resolution), week.ts (reset/schedule
+                 periods), gmt8.ts (GMT+8 formatting), image.ts, mapleClasses.ts
   types.ts       Shared TypeScript types
   constants.ts   ADMIN_EMAIL (from VITE_ADMIN_EMAIL)
 firestore.rules  Public read; editor/admin write; separate admin email — see step 3

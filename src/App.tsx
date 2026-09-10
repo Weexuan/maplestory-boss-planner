@@ -4,6 +4,7 @@ import { Layout } from "./components/Layout";
 import Bosses from "./pages/Bosses";
 import Players from "./pages/Players";
 import Parties from "./pages/Parties";
+import Schedule from "./pages/Schedule";
 import Admin from "./pages/Admin";
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Parties />} />
+            <Route path="schedule" element={<Schedule />} />
             <Route path="bosses" element={<Bosses />} />
             <Route path="players" element={<Players />} />
             <Route path="admin" element={<Admin />} />

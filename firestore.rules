@@ -48,6 +48,12 @@ service cloud.firestore {
       allow write: if isSignedIn();
     }
 
+    // Planned run times for parties (Schedule page): same access as parties themselves.
+    match /schedules/{id} {
+      allow read: if true;
+      allow write: if isEditor();
+    }
+
     // User profiles + roles + character links: readable by the admin or by the user themself
     // (privacy — this is the only collection with emails/photos, so it's not public like the
     // rest). A user may create their own profile but only as "viewer" with no character linked
